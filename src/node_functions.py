@@ -32,3 +32,45 @@ def extract_markdown_images(text):
 def extract_markdown_links(text):
     matches = re.findall(r"\[(.+?)\]\((.+?)\)", text)
     return matches
+
+
+def split_nodes_image(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        if node.text == "":
+            continue
+        if node.text_type is not TextType.TEXT:
+            new_nodes.append(node)
+            continue
+        images = extract_markdown_images(node.text)
+        if images == []:  # No images, we go on
+            new_nodes.append(node)
+            continue
+        original_text = node.text
+        for i in range(len(images)):
+            sections = original_text.split(f"![{images[i][0]}]({images[i][1]})", 1)
+            new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(images[i][0], TextType.IMAGE, images[i][1]))
+            original_text = sections[1]
+    return new_nodes
+
+
+def split_nodes_link(old_nodes):
+    new_nodes = []
+    for node in old_nodes:
+        if node.text == "":
+            continue
+        if node.text_type is not TextType.TEXT:
+            new_nodes.append(node)
+            continue
+        links = extract_markdown_links(node.text)
+        if links == []:  # No links, we go on
+            new_nodes.append(node)
+            continue
+        original_text = node.text
+        for i in range(len(links)):
+            sections = original_text.split(f"[{links[i][0]}]({links[i][1]})", 1)
+            new_nodes.append(TextNode(sections[0], TextType.TEXT))
+            new_nodes.append(TextNode(links[i][0], TextType.LINK, links[i][1]))
+            original_text = sections[1]
+    return new_nodes
