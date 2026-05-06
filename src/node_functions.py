@@ -1,4 +1,4 @@
-# Functions too general to put in any one node file.
+# Functions too general to put in any one node file, because they can act on multiple node types
 import re
 
 from textnode import TextNode, TextType
@@ -46,12 +46,14 @@ def split_nodes_image(old_nodes):
         if images == []:  # No images, we go on
             new_nodes.append(node)
             continue
-        original_text = node.text
+        remaining_text = node.text
         for i in range(len(images)):
-            sections = original_text.split(f"![{images[i][0]}]({images[i][1]})", 1)
+            sections = remaining_text.split(f"![{images[i][0]}]({images[i][1]})", 1)
             new_nodes.append(TextNode(sections[0], TextType.TEXT))
             new_nodes.append(TextNode(images[i][0], TextType.IMAGE, images[i][1]))
-            original_text = sections[1]
+            remaining_text = sections[1]
+        if remaining_text != "":
+            new_nodes.append(TextNode(remaining_text, TextType.TEXT))
     return new_nodes
 
 
@@ -67,10 +69,12 @@ def split_nodes_link(old_nodes):
         if links == []:  # No links, we go on
             new_nodes.append(node)
             continue
-        original_text = node.text
+        remaining_text = node.text
         for i in range(len(links)):
-            sections = original_text.split(f"[{links[i][0]}]({links[i][1]})", 1)
+            sections = remaining_text.split(f"[{links[i][0]}]({links[i][1]})", 1)
             new_nodes.append(TextNode(sections[0], TextType.TEXT))
             new_nodes.append(TextNode(links[i][0], TextType.LINK, links[i][1]))
-            original_text = sections[1]
+            remaining_text = sections[1]
+        if remaining_text != "":
+            new_nodes.append(TextNode(remaining_text, TextType.TEXT))
     return new_nodes

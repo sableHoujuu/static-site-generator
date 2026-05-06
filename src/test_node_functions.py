@@ -120,6 +120,18 @@ class TestNodeFunctions(unittest.TestCase):
             ]
             * 3,
         )
+        node = TextNode(
+            "This is a node with an ![image](https://i.imgur.com/3elNhQu.png) and some text after it",
+            TextType.TEXT,
+        )
+        self.assertListEqual(
+            split_nodes_image([node]),
+            [
+                TextNode("This is a node with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"),
+                TextNode(" and some text after it", TextType.TEXT),
+            ],
+        )
 
     def test_split_links(self):
         node = TextNode(
@@ -157,4 +169,16 @@ class TestNodeFunctions(unittest.TestCase):
                 ),
             ]
             * 3,
+        )
+        node = TextNode(
+            "This is a node with a [link](https://i.imgur.com/3elNhQu.png) and some text after it",
+            TextType.TEXT,
+        )
+        self.assertListEqual(
+            split_nodes_link([node]),
+            [
+                TextNode("This is a node with a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://i.imgur.com/3elNhQu.png"),
+                TextNode(" and some text after it", TextType.TEXT),
+            ],
         )
