@@ -28,7 +28,8 @@ def text_node_to_html_node(text_node):
 
 
 def text_to_textnodes(text):
-    text_nodes = [TextNode(text, TextType.TEXT)]
+    lines = text.splitlines()
+    text_nodes = [TextNode(line, TextType.TEXT) for line in lines]
     # There are 5 types we need to check for
     text_nodes = split_nodes_delimiter(text_nodes, "**", TextType.BOLD)
     text_nodes = split_nodes_delimiter(text_nodes, "_", TextType.ITALIC)

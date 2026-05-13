@@ -1,6 +1,6 @@
 import unittest
 
-from markdown_functions import markdown_to_blocks, markdown_to_html_node
+from markdown_functions import extract_title, markdown_to_blocks, markdown_to_html_node
 
 
 class TestMarkdownFunctions(unittest.TestCase):
@@ -89,3 +89,44 @@ the **same** even with inline stuff
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+    def test_headers(self):
+        md = """
+# This is a header 1
+
+## This is a header 2
+
+### This is a header 3
+"""
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h1>This is a header 1</h1><h2>This is a header 2</h2><h3>This is a header 3</h3></div>",
+        )
+
+    def test_extract_title(self):
+        md = """
+This is a line
+
+# This is a header
+
+## This is a header 2
+"""
+        self.assertEqual(extract_title(md), "This is a header")
+        md = """
+This has no header
+
+Nothing here at all
+Yep
+"""
+        self.assertRaises(Exception, extract_title, md)
+        md = """
+## This has an h2
+
+### and an h3
+
+
+#### But no h1....
+"""
+        self.assertRaises(Exception, extract_title, md)
