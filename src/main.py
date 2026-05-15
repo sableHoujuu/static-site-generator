@@ -41,10 +41,21 @@ def generate_page(from_path, template_path, dest_path):
         f.write(final_html)
 
 
+def generate_site(path_to_content, dest_path):
+    abs_source = os.path.abspath(path_to_content)
+    for file in os.listdir(abs_source):
+        abs_file = os.path.join(abs_source, file)
+        if os.path.isdir(abs_file):
+            generate_site(abs_file, f"{dest_path}/{file.replace('.md', '.html')}")
+        elif os.path.isfile(abs_file):
+            generate_page(
+                abs_file, "template.html", f"{dest_path}/{file.replace('.md', '.html')}"
+            )
+
+
 def main():
-    object = TextNode("yeah", "image", "yep")
     copy_dir("./static", "./public")
-    generate_page("content/index.md", "template.html", "public/index.html")
+    generate_site("content", "public")
 
 
 main()
