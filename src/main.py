@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 
 from markdown_functions import extract_title, markdown_to_html_node
 from textnode import TextNode, TextType
@@ -21,7 +22,7 @@ def copy_dir(source, dest):
             copy_dir(path, os.path.join(abs_dest, file))
 
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, root_path):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     abs_from = os.path.abspath(from_path)
     with open(abs_from) as f:
@@ -32,8 +33,11 @@ def generate_page(from_path, template_path, dest_path):
     html_node = markdown_to_html_node(from_contents)
     html_string = html_node.to_html()
     title = extract_title(from_contents)
-    final_html = template_contents.replace("{{ Title }}", title).replace(
-        "{{ Content }}", html_string
+    final_html = (
+        template_contents.replace("{{ Title }}", title)
+        .replace("{{ Content }}", html_string)
+        .replace('href="/', f'href="{root_path}')
+        .replace('src="/', f'src="{root_path}')
     )
     abs_dest = os.path.abspath(dest_path)
     os.makedirs(os.path.dirname(abs_dest), exist_ok=True)
@@ -41,21 +45,31 @@ def generate_page(from_path, template_path, dest_path):
         f.write(final_html)
 
 
-def generate_site(path_to_content, dest_path):
+def generate_site(path_to_content, dest_path, root_path):
     abs_source = os.path.abspath(path_to_content)
     for file in os.listdir(abs_source):
         abs_file = os.path.join(abs_source, file)
         if os.path.isdir(abs_file):
-            generate_site(abs_file, f"{dest_path}/{file.replace('.md', '.html')}")
+            generate_site(
+                abs_file, f"{dest_path}/{file.replace('.md', '.html')}", root_path
+            )
         elif os.path.isfile(abs_file):
             generate_page(
-                abs_file, "template.html", f"{dest_path}/{file.replace('.md', '.html')}"
+                abs_file,
+                "template.html",
+                f"{dest_path}/{file.replace('.md', '.html')}",
+                root_path,
             )
 
 
 def main():
-    copy_dir("./static", "./public")
-    generate_site("content", "public")
+    root_path = "/"
+    try:
+        root_path = sys.argv[1]
+    except Exception as _e:
+        print(f"No path provided, falling back to default {root_path}")
+    copy_dir("./static", "./docs")
+    generate_site("content", "docs", root_path)
 
 
 main()
